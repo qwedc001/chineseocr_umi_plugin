@@ -44,13 +44,14 @@ class Api:
     #借用自plugins-P2Tocr,进行了修改
     def _standardized(self,res):
         datas = []
+
         for item in res:
             text = item[1].split(" ")[1]
             accuracy = item[2]
             position = item[0]
             datas.append({
                 "text": text,
-                "score": accuracy,
+                "score": float(accuracy.__str__()),
                 "box": position.tolist()
             })
         if datas:
