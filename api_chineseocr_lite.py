@@ -17,18 +17,11 @@ class Api:
 
     # 获取OcrHandle 实例
     def start(self, argd):
+        # 引擎已启动，且 short_size 一致，则跳过再启动
         if self.chineseocr and self.short_size == argd["short_size"]:
             return ""
-        site.addsitedir(SitePackages)
+        site.addsitedir(SitePackages)  # 依赖库到添加python搜索路径
         try:
-
-            class _std:
-                def write(self, e):
-                    print(e)
-
-            sys.__stdout__ = _std
-            sys.__stderr__ = _std
-
             from .model import OcrHandle
 
             self.chineseocr = OcrHandle()
