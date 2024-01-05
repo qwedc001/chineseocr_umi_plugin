@@ -1,3 +1,0 @@
-# 排除缓存
-**/__pycache__/
-**/site-packages/
