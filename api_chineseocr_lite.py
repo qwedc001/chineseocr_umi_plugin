@@ -10,6 +10,24 @@ CurrentDir = os.path.dirname(os.path.abspath(__file__))
 # 依赖包目录
 SitePackages = os.path.join(CurrentDir, "site-packages")
 
+"""
+TODO 1 :
+在本模块的run方法中，img直接转换为cv2对象，跳过转为PIL的步骤。
+在 model.py 和 dbnet_infer.py 的相应接口中，直接传递cv2对象。
+这样可以去除 PIL → np.asarray(BGR) → RGB 的繁琐转换步骤，减少无谓的开销。
+
+TODO 2 :
+将更多可设置参数添加到面板。如 config.py 中的 angle_detect 之类。
+
+TODO 3 :
+精度问题。chineseocr主页有一些测试图片，它展示的识别结果是正确的，但本插件的结果存在一些误差。
+https://github.com/DayBreak-u/chineseocr_lite/tree/master
+需要验证：是否为参数设置不当导致？是否为onnx模型导致？使用别的方法部署（如pytorch）的结果是否一致？
+
+onnx库有一些警告Warning日志信息。这些Warning可以忽视吗？是否为精度问题的原因？
+如果可以忽视，则下面47行 onnxruntime.set_default_logger_severity(3) 可以屏蔽日志。
+"""
+
 
 class Api:
     def __init__(self, globalArgd):
@@ -17,15 +35,18 @@ class Api:
 
     # 获取OcrHandle 实例
     def start(self, argd):
-        # 引擎已启动，且 short_size 一致，则跳过再启动
-        if self.chineseocr and self.short_size == argd["short_size"]:
+        self.short_size = argd["short_size"]  # 记录最新 short_size 参数
+        if self.chineseocr:  # 引擎已启动，则跳过再启动
             return ""
         site.addsitedir(SitePackages)  # 依赖库到添加python搜索路径
         try:
             from .model import OcrHandle
 
+            # import onnxruntime
+            # 设置onnx日志级别为3级-Error。忽视Warning以下级别的信息。
+            # onnxruntime.set_default_logger_severity(3)
+            # 启动引擎
             self.chineseocr = OcrHandle()
-            self.short_size = argd["short_size"]
             return ""
         except Exception as e:
             self.chineseocr = None
